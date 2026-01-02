@@ -31,10 +31,11 @@ jobs:
 
 
       - name: Authenticate
-        shell: cmd
+        shell: bash
         env:
           CLIENT_ID: ${{ secrets.SPN_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.SPN_CLIENT_SECRET }}
           TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: |
-          fab auth login -u "$CLIENT_ID" -p "$CLIENT_SECRET" --tenant "$TENANT_ID"
+          echo "Tenant ID is: ${TENANT_ID}"
+          fab auth login -u "${CLIENT_ID}" -p "${CLIENT_SECRET}" --tenant "${TENANT_ID}"
