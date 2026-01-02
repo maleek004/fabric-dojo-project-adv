@@ -22,6 +22,13 @@ jobs:
         run: |
             python -m pip install --upgrade pip
             pip install ms-fabric-cli==1.2.0
+      
+      - name: Debug secrets presence (safe)
+        run: |
+            if ("${{ secrets.SPN_CLIENT_ID }}" -eq "") { echo "SPN_CLIENT_ID is EMPTY" } else { echo "SPN_CLIENT_ID is set" }
+            if ("${{ secrets.SPN_CLIENT_SECRET }}" -eq "") { echo "SPN_CLIENT_SECRET is EMPTY" } else { echo "SPN_CLIENT_SECRET is set" }
+            if ("${{ secrets.AZURE_TENANT_ID }}" -eq "") { echo "AZURE_TENANT_ID is EMPTY" } else { echo "AZURE_TENANT_ID is set" }
+
 
       - name: Authenticate
         run: |
