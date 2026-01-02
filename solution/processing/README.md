@@ -1,4 +1,4 @@
 # Processing
 
-Connect your DEV Processing workspace to write into this folder 
+Our DEV Processing workspace is connected to write into this folder 
 

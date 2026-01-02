@@ -1,4 +1,4 @@
 # Data Stores
 
-Connect your DEV Data Stores workspace to write into this folder 
+Our DEV Data Stores workspace is connected to write into this folder 
 

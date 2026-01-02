@@ -56,23 +56,24 @@
 The following naming conventions have been suggested for client review, based on the items found in the High-Level Architecture Diagram are described below:
 
 The general naming convention is described below:
-AA_BB_CC_DD
-AA = Item Type
-BB = Project Code
-CC = Deployment Stage
-DD = Short Description
+aa-bb-cc-dd
+aa = Item Type
+bb = Project Code
+cc = Deployment Stage
+dd = Short Description
 
 Part 1: Item Types:
 
-- FC: Fabric Capacity
-- WS: Workspace
-- SG: Entra ID Security Group
+- fc: Fabric Capacity
+- ws: Workspace
+- sg: Entra ID Security Group
+- sp: Service principle
 - _More will be added to this list as we progress the project & implementation_
 
 Part 2: Project Code:
 
-- AV01: AV - related to the Advanced-level project. 01 - relates to the Architectural version number of the IAC template that deployed the solution.
-- AV02: therefore, AV02 will be solution deployed from a second IAC template (as part of the Adv). The second version of the architecture.
+- av01: av - related to the Advanced-level project. 01 - relates to the Architectural version number of the IAC template that deployed the solution.
+- av02: therefore, av02 will be solution deployed from a second IAC template (as part of the Adv). The second version of the architecture.
 - It is assumed the two-digit number code (giving room for 99 architecture versions), will be sufficient 'headroom' in the naming convention, but this will be confirmed with the client.
 
 Part 3: Deployment Stage:

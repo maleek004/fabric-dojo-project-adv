@@ -1,3 +1,3 @@
 # Consumption
 
-Connect your DEV Consumption workspace to write into this folder 
+Our DEV Consumption workspace is connected to write into this folder 
