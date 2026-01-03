@@ -13,9 +13,9 @@ azure:
   # Entra ID Security Groups (Object IDs) - for workspace permissions
   # Replace these with your actual Entra ID Group Object IDs
   security_groups:
-    SG_AV_Analysts: "5b1325e2-a338-4ab3-bd53-beb297531443"
-    SG_AV_Engineers: "d6abd4ab-c515-4ab9-ba88-ba4f518f1f0d"
-    SG_AV_Consumers: "b53467e7-238a-43fc-8e63-e4a6d237bac5"
+    sg-adv-analysts: "5b1325e2-a338-4ab3-bd53-beb297531443"
+    sg-adv-engineers: "d6abd4ab-c515-4ab9-ba88-ba4f518f1f0d"
+    sg-adv-consumers: "b53467e7-238a-43fc-8e63-e4a6d237bac5"
 
   # Default settings for all Fabric capacities, saves us having to write them out each time
   capacity_defaults:
@@ -43,54 +43,54 @@ workspaces:
   - name: "{{SOLUTION_VERSION}}-dev-processing"
     capacity: "fc{{SOLUTION_VERSION}}devengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
     connect_to_git_folder: "solution/processing/"
   - name: "{{SOLUTION_VERSION}}-dev-datastores"
     capacity: "fc{{SOLUTION_VERSION}}devengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
     connect_to_git_folder: "solution/datastores/"
   - name: "{{SOLUTION_VERSION}}-dev-consumption"
     capacity: "fc{{SOLUTION_VERSION}}devengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
     connect_to_git_folder: "solution/consumption/"
   - name: "{{SOLUTION_VERSION}}-test-processing"
     capacity: "fc{{SOLUTION_VERSION}}testengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
   - name: "{{SOLUTION_VERSION}}-test-datastores"
     capacity: "fc{{SOLUTION_VERSION}}testengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
   - name: "{{SOLUTION_VERSION}}-test-consumption"
     capacity: "fc{{SOLUTION_VERSION}}testconsumption"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
   - name: "{{SOLUTION_VERSION}}-prod-processing"
     capacity: "fc{{SOLUTION_VERSION}}prodengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
   - name: "{{SOLUTION_VERSION}}-prod-datastores"
     capacity: "fc{{SOLUTION_VERSION}}prodengineering"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
-      - group: "SG_AV_Analysts"
+      - group: "sg-adv-analysts"
         role: "Contributor"
   - name: "{{SOLUTION_VERSION}}-prod-consumption"
     capacity: "fc{{SOLUTION_VERSION}}prodconsumption"
     permissions:
-      - group: "SG_AV_Engineers"
+      - group: "sg-adv-engineers"
         role: "Admin"
-      - group: "SG_AV_Analysts"
+      - group: "sg-adv-analysts"
         role: "Contributor"
-      - group: "SG_AV_Consumers"
+      - group: "sg-adv-consumers"
         role: "Viewer"
