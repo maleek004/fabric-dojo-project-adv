@@ -41,13 +41,9 @@ jobs:
           pip install -r config/requirements.txt
 
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}" >> $GITHUB_ENV
-
-      - name: Fetch latest changes
-        run: git pull origin ${{ inputs.feature_branch_name }}
-
-      - name: Push branch
-        run: git push origin ${{ inputs.feature_branch_name }}
+        run: |
+          $py = "${{ github.workspace }}\config"
+          Add-Content -Path $env:GITHUB_ENV -Value "PYTHONPATH=$py"
 
       - name: Create feature workspaces
         env:
