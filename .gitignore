@@ -2,5 +2,5 @@
 iac/environment-variables/** 
 .obsidian/
 .venv/
-
+/config/fabric_core/__pycache__
 wip/**
