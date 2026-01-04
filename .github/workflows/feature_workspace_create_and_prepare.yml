@@ -43,6 +43,12 @@ jobs:
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}" >> $GITHUB_ENV
 
+      - name: Fetch latest changes
+        run: git pull origin ${{ inputs.feature_branch_name }}
+
+      - name: Push branch
+        run: git push origin ${{ inputs.feature_branch_name }}
+
       - name: Create feature workspaces
         env:
           FEATURE_BRANCH_NAME: ${{ inputs.feature_branch_name }}
