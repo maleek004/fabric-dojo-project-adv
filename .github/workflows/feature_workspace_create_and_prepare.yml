@@ -1,5 +1,8 @@
 name: Create Feature Workspaces
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
