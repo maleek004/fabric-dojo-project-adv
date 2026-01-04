@@ -1,156 +1,136 @@
-"""Workspace management module for Fabric CLI."""
+"""
+Create feature workspaces for development branches.
 
-import re
-import time
+This script is designed to be called from GitHub Actions workflow_dispatch.
+It creates workspaces for a feature branch and connects them to Git.
+"""
+
+# fmt: off
+# isort: skip_file
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Add config directory to Python path to find fabric_core module
+config_dir = Path(__file__).parent.parent
+if str(config_dir) not in sys.path:
+    sys.path.insert(0, str(config_dir))
+
+# Import from fabric_core modules (must be after sys.path modification)
+from fabric_core import auth, create_workspace, assign_permissions
+from fabric_core import get_or_create_git_connection, connect_workspace_to_git, update_workspace_from_git
+from fabric_core.utils import load_config, run_command, get_fabric_cli_path
 import json
-from fabric_core.utils import get_fabric_cli_path, run_command
+# fmt: on
 
 
-def workspace_exists(workspace_name):
-    """Check if a Fabric workspace exists."""
-    return run_command([get_fabric_cli_path(), 'ls', f'{workspace_name}.Workspace']).returncode == 0
+# Ensure UTF-8 encoding for stdout
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 
-def get_workspace_id(workspace_name):
-    """Get the UUID of a workspace by name."""
-    response = run_command(
-        [get_fabric_cli_path(), 'get', f'{workspace_name}.Workspace', '-q', 'id'])
-    if response.returncode == 0:
-        workspace_id = response.stdout.strip()
-        if workspace_id:
-            return workspace_id
-    uuid_match = re.search(
-        r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', response.stdout.lower())
-    return uuid_match.group() if uuid_match else None
+def get_capacity_for_workspace_type(workspace_type, solution_version):
+    """Determine which capacity to use based on workspace type."""
+    capacity_map = {
+        'processing': f'fc{solution_version}devengineering',
+        'datastores': f'fc{solution_version}devengineering',
+        'consumption': f'fc{solution_version}devconsumption'
+    }
+    return capacity_map.get(workspace_type)
 
 
-def create_workspace(workspace_config):
-    """
-    Create a Fabric workspace.
+def main():
+    # Load environment variables if not in GitHub Actions
+    if not os.getenv('GITHUB_ACTIONS'):
+        # Load .env from project root (2 levels up from scripts/)
+        load_dotenv(Path(__file__).parent.parent.parent / '.env')
 
-    Args:
-        workspace_config: Dict with 'name' and 'capacity' keys
+    # Get inputs from environment (set by GitHub Actions workflow)
+    feature_branch = os.getenv('FEATURE_BRANCH_NAME')
+    workspaces_input = os.getenv(
+        'WORKSPACES_TO_CREATE', 'processing,datastores')
 
-    Returns:
-        str: Workspace ID if successful, None otherwise
-    """
-    workspace_name = workspace_config['name']
+    # Parse workspace types (comma-separated)
+    workspace_types = [ws.strip()
+                       for ws in workspaces_input.split(',') if ws.strip()]
 
-    if workspace_exists(workspace_name):
-        print(f"✓ {workspace_name} exists")
-        return get_workspace_id(workspace_name)
+    # Load config to get solution version, security groups, and git config
+    config = load_config(
+        os.getenv('CONFIG_FILE', 'config/templates/v01/v01-template.yml'))
 
-    # Create workspace and check if successful
-    result = run_command([get_fabric_cli_path(), 'create',
-                         f'{workspace_name}.Workspace', '-P', f'capacityname={workspace_config["capacity"]}'])
+    solution_version = config.get('solution_version', 'av01')
+    azure_config = config['azure']
+    security_groups = azure_config.get('security_groups', {})
+    git_config = config.get('github', {})
 
-    if result.returncode != 0:
-        print(f"✗ Failed to create {workspace_name}")
-        print(f"  stdout: {result.stdout}")
-        print(f"  stderr: {result.stderr}")
-        return None
+    # Override git branch to use feature branch
+    git_config['branch'] = feature_branch
 
-    print(f"✓ Created {workspace_name}")
+    print("=== AUTHENTICATING ===")
+    if not auth():
+        print("\n✗ Authentication failed. Cannot proceed with workspace creation.")
+        return
 
-    # Wait for workspace to be provisioned
-    time.sleep(5)
-    workspace_id = get_workspace_id(workspace_name)
+    print(
+        f"\n=== CREATING FEATURE WORKSPACES FOR BRANCH: {feature_branch} ===")
+    github_connection_id = None
 
-    if not workspace_id:
-        print(f"  ⚠ Warning: Workspace created but ID could not be retrieved")
+    for workspace_type in workspace_types:
+        # Construct workspace name: <solution_version>-<branch>-<type>
+        workspace_name = f"{solution_version}-{feature_branch}-{workspace_type}"
 
-    return workspace_id
+        # Get capacity for this workspace type
+        capacity_name = get_capacity_for_workspace_type(
+            workspace_type, solution_version)
 
+        if not capacity_name:
+            print(f"✗ Unknown workspace type: {workspace_type}")
+            continue
 
-def get_workspace_role_assignments(workspace_id):
-    """
-    Get existing role assignments for a workspace.
+        print(f"\n--- Creating {workspace_name} ---")
 
-    Args:
-        workspace_id: Workspace UUID
-
-    Returns:
-        dict: Dictionary mapping principal IDs to their roles, or empty dict if failed
-    """
-    result = run_command([get_fabric_cli_path(), 'api', '-X', 'get', f'workspaces/{workspace_id}/roleAssignments'])
-
-    if result.returncode != 0:
-        return {}
-
-    try:
-        response_json = json.loads(result.stdout)
-        if response_json.get('status_code') == 200:
-            assignments = response_json.get('text', {}).get('value', [])
-            # Create a mapping of principal ID to role
-            return {assignment['principal']['id']: assignment['role'] for assignment in assignments}
-    except (json.JSONDecodeError, KeyError):
-        pass
-
-    return {}
-
-
-def assign_permissions(workspace_id, permissions, security_groups):
-    """
-    Assign permissions to security groups for a workspace.
-
-    Args:
-        workspace_id: Workspace UUID
-        permissions: List of dicts with 'group' and 'role' keys
-        security_groups: Dict mapping group names to group IDs
-
-    Example:
-        permissions = [{'group': 'SG_AV_Engineers', 'role': 'Contributor'}]
-        security_groups = {'SG_AV_Engineers': 'guid-here'}
-    """
-    time.sleep(10)
-
-    # Get existing role assignments
-    existing_assignments = get_workspace_role_assignments(workspace_id)
-
-    for permission in permissions:
-        group_id = security_groups.get(permission.get('group'))
-        desired_role = permission.get('role')
-
-        # Check if group already has a role assigned
-        if group_id in existing_assignments:
-            existing_role = existing_assignments[group_id]
-            if existing_role == desired_role:
-                print(f"  ✓ {permission['group']} already has {desired_role} role")
-                continue
-            else:
-                print(f"  ⚠ {permission['group']} already has {existing_role} role (wanted {desired_role})")
-                continue
-
-        request_body = {
-            "principal": {
-                "id": group_id,
-                "type": "Group",
-                "groupDetails": {"groupType": "SecurityGroup"}
-            },
-            "role": permission.get('role')
+        # Create workspace
+        workspace_config = {
+            'name': workspace_name,
+            'capacity': capacity_name
         }
+        workspace_id = create_workspace(workspace_config)
 
-        assign_response = run_command([get_fabric_cli_path(
-        ), 'api', '-X', 'post', f'workspaces/{workspace_id}/roleAssignments', '-i', json.dumps(request_body)])
+        if workspace_id:
+            # Assign Engineers as Contributors
+            permissions = [{'group': 'SG_AV_Engineers', 'role': 'Admin'}]
+            assign_permissions(workspace_id, permissions, security_groups)
 
-        # Handle empty or invalid JSON response
-        if not assign_response.stdout.strip():
-            print(f"  ✗ Failed to assign {permission['role']} to {permission['group']}: Empty response")
-            print(f"    stderr: {assign_response.stderr}")
-            continue
+            # Connect to Git (feature branch, solution/<type>/ folder)
+            if not github_connection_id:
+                github_connection_id = get_or_create_git_connection(
+                    workspace_id, git_config)
 
-        try:
-            response_json = json.loads(assign_response.stdout)
-        except json.JSONDecodeError as e:
-            print(f"  ✗ Failed to assign {permission['role']} to {permission['group']}: Invalid JSON")
-            print(f"    stdout: {assign_response.stdout}")
-            print(f"    stderr: {assign_response.stderr}")
-            continue
+            if github_connection_id:
+                git_directory = f"solution/{workspace_type}/"
+                success = connect_workspace_to_git(
+                    workspace_id,
+                    workspace_name,
+                    git_directory,
+                    git_config,
+                    github_connection_id
+                )
 
-        if response_json.get('status_code') in [200, 201]:
-            print(
-                f"  ✓ Assigned {permission['role']} to {permission['group']}")
-        else:
-            print(f"  ✗ Failed to assign {permission['role']} to {permission['group']}")
-            print(f"    Status: {response_json.get('status_code')}")
-            print(f"    Response: {response_json.get('text', {})}")
+                if success:
+                    # Initialize the connection
+                    init_response = run_command([
+                        get_fabric_cli_path(), 'api', '-X', 'post',
+                        f'workspaces/{workspace_id}/git/initializeConnection',
+                        '-i', '{}'
+                    ])
+                    print(f"  ✓ Initialized Git connection")
+
+                    # Pull content from Git into the workspace
+                    update_workspace_from_git(workspace_id, workspace_name)
+
+    print("\n✓ Feature workspace creation complete")
+
+
+if __name__ == "__main__":
+    main()
