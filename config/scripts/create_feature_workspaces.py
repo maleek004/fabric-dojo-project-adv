@@ -19,7 +19,7 @@ if str(config_dir) not in sys.path:
 
 # Import from fabric_core modules (must be after sys.path modification)
 from fabric_core import auth, create_workspace, assign_permissions
-from fabric_core import  resume_capacity
+from fabric_core import  resume_capacity , suspend_capacity
 from fabric_core import get_or_create_git_connection, connect_workspace_to_git, update_workspace_from_git
 from fabric_core.utils import load_config, run_command, get_fabric_cli_path
 import json
@@ -68,11 +68,6 @@ def main():
     security_groups = azure_config.get('security_groups', {})
     git_config = config.get('github', {})
 
-    #confirming variables
-    print("\n === CONFIRMING VARIABLES ===")
-    print(f"resourse group = {resource_group}")
-    print(f"subscription_id = {subscription_id}\n")
-
     # Override git branch to use feature branch
     git_config['branch'] = feature_branch
 
@@ -114,7 +109,7 @@ def main():
 
         if workspace_id:
             # Assign Engineers as Contributors
-            permissions = [{'group': 'SG_AV_Engineers', 'role': 'Admin'}]
+            permissions = [{'group': 'sg-adv-engineers', 'role': 'Admin'}]
             assign_permissions(workspace_id, permissions, security_groups)
 
             # Connect to Git (feature branch, solution/<type>/ folder)
@@ -143,6 +138,11 @@ def main():
 
                     # Pull content from Git into the workspace
                     update_workspace_from_git(workspace_id, workspace_name)
+        
+        print(f"\n -----suspending capacity: {capacity_name} --------")
+
+        suspend_capacity(capacity_name,subscription_id,resource_group)
+
 
     print("\n✓ Feature workspace creation complete")
 
