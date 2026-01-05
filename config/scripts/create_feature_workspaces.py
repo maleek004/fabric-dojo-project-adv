@@ -19,6 +19,7 @@ if str(config_dir) not in sys.path:
 
 # Import from fabric_core modules (must be after sys.path modification)
 from fabric_core import auth, create_workspace, assign_permissions
+from fabric_core import  resume_capacity
 from fabric_core import get_or_create_git_connection, connect_workspace_to_git, update_workspace_from_git
 from fabric_core.utils import load_config, run_command, get_fabric_cli_path
 import json
@@ -61,8 +62,16 @@ def main():
 
     solution_version = config.get('solution_version', 'av01')
     azure_config = config['azure']
+    subscription_id = azure_config['subscription_id']
+    capacity_defaults = azure_config.get('capacity_defaults', {})
+    resource_group = capacity_defaults.get('resource_group')
     security_groups = azure_config.get('security_groups', {})
     git_config = config.get('github', {})
+
+    #confirming variables
+    print("\n === CONFIRMING VARIABLES ===")
+    print(f"resourse group = {resource_group}")
+    print(f"subscription_id = {subscription_id}\n")
 
     # Override git branch to use feature branch
     git_config['branch'] = feature_branch
@@ -89,6 +98,12 @@ def main():
             continue
 
         print(f"\n--- Creating {workspace_name} ---")
+
+        print(f"\n -----resuming capacity: {capacity_name} --------")
+
+        resume_capacity(capacity_name,subscription_id,resource_group)
+
+        
 
         # Create workspace
         workspace_config = {

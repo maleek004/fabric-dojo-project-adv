@@ -72,3 +72,25 @@ def suspend_capacity(capacity_name, subscription_id, resource_group):
         time.sleep(60)
     print(f"✗ Failed to suspend {capacity_name}")
     return False
+
+def resume_capacity(capacity_name, subscription_id, resource_group):
+    """
+    Resume a suspended Fabric capacity.
+
+    Args:
+        capacity_name: Name of the capacity to resume
+        subscription_id: Azure subscription ID
+        resource_group: Azure resource group name
+
+    Returns:
+        bool: True if resumed successfully, False otherwise
+    """
+    for _ in range(5):
+        status, _ = call_azure_api(
+            f"subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.Fabric/capacities/{capacity_name}/resume?api-version=2023-11-01", 'post')
+        if status in [200, 202]:
+            print(f"✓ resumed {capacity_name}")
+            return True
+        time.sleep(60)
+    print(f"✗ Failed to resume {capacity_name}")
+    return False
