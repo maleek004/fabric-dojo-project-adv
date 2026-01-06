@@ -116,6 +116,7 @@ def main():
             if not github_connection_id:
                 github_connection_id = get_or_create_git_connection(
                     workspace_id, git_config)
+                print(f"this is the ID for the new github connection{github_connection_id}")
 
             if github_connection_id:
                 git_directory = f"solution/{workspace_type}/"
