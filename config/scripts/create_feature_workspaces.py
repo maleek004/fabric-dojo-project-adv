@@ -140,9 +140,9 @@ def main():
                     # Pull content from Git into the workspace
                     update_workspace_from_git(workspace_id, workspace_name)
         
-        #print(f"\n -----suspending capacity: {capacity_name} --------")
+        print(f"\n -----suspending capacity: {capacity_name} --------")
 
-        #suspend_capacity(capacity_name,subscription_id,resource_group)
+        suspend_capacity(capacity_name,subscription_id,resource_group)
 
 
     print("\n✓ Feature workspace creation complete")
