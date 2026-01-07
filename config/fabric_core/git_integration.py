@@ -27,9 +27,12 @@ def get_or_create_git_connection(workspace_id, git_config):
     if list_json.get('status_code') == 200:
         connections = list_json.get('text', {}).get('value', [])
         for conn in connections:
-            if conn.get('displayName') == connection_name:
-                connection_name = connection_name + 'x'
-                print('found a matching connection name , creating another with x suffix') 
+            if conn.get('displayName') == 'test connection':
+                print('using a test connection')
+                connection_name = 'test connection'
+                return conn.get('id')
+                #connection_name = connection_name + 'x'
+                #print('found a matching connection name , creating another with x suffix') 
 #                print(f"✓ Using existing connection: {connection_name}")
 #                return conn.get('id')
 
