@@ -135,7 +135,19 @@ def main():
                         f'workspaces/{workspace_id}/git/initializeConnection',
                         '-i', '{}'
                     ])
-                    print(f"  ✓ Initialized Git connection")
+                    
+                    # Parse response and check status code
+                    try:
+                        response_body = json.loads(init_response.stdout)
+                        status_code = response_body.get('status_code')
+                        
+                        if status_code == 200:
+                            print(f"  ✓ Initialized Git connection")
+                        else:
+                            error_message = response_body.get('message', 'Unknown error')
+                            print(f"  ✗ Failed to initialize Git connection: {error_message}")
+                    except (json.JSONDecodeError, AttributeError) as e:
+                        print(f"  ✗ Failed to parse Git initialization response: {str(e)}")
 
                     # Pull content from Git into the workspace
                     update_workspace_from_git(workspace_id, workspace_name)

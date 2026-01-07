@@ -28,8 +28,10 @@ def get_or_create_git_connection(workspace_id, git_config):
         connections = list_json.get('text', {}).get('value', [])
         for conn in connections:
             if conn.get('displayName') == connection_name:
-                print(f"✓ Using existing connection: {connection_name}")
-                return conn.get('id')
+                connection_name = connection_name + 'x'
+                print('found a matching connection name , creating another with x suffix') 
+#                print(f"✓ Using existing connection: {connection_name}")
+#                return conn.get('id')
 
     # Create new connection
     github_url = f"https://github.com/{owner_name}/{repo_name}"
