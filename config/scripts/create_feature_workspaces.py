@@ -113,10 +113,10 @@ def main():
             assign_permissions(workspace_id, permissions, security_groups)
 
             # Connect to Git (feature branch, solution/<type>/ folder)
+            print(f'Trying to connect {workspace_name} to a new or existing github connection')
             if not github_connection_id:
                 github_connection_id = get_or_create_git_connection(
                     workspace_id, git_config)
-                print(f"this is the ID for the new github connection{github_connection_id}")
 
             if github_connection_id:
                 git_directory = f"solution/{workspace_type}/"
