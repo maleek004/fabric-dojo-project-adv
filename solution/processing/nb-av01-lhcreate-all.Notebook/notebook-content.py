@@ -4,7 +4,8 @@
 
 # META {
 # META   "kernel_info": {
-# META     "name": "synapse_pyspark"
+# META     "name": "jupyter",
+# META     "jupyter_kernel_name": "python3.11"
 # META   },
 # META   "dependencies": {}
 # META }
@@ -26,16 +27,18 @@
 # CELL ********************
 
 import notebookutils 
+import polars as pl 
 
 variables = notebookutils.variableLibrary.getLibrary("vl-av01-variables")
 
 lh_workspace_name = variables.LH_WORKSPACE_NAME
+ws_ID = variables.LH_WORKSPACE_ID
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -49,89 +52,92 @@ lh_workspace_name = variables.LH_WORKSPACE_NAME
 
 LAKEHOUSE_METADATA = {
     "bronze": {
-        "name_variable": "BRONZE_LH_NAME",
+        "LH_ID_variable": "BRONZE_LH_ID",
+        "LH_name_variable": "BRONZE_LH_NAME",
         "schemas": ["youtube"],
         "tables": {
-            "youtube.channel": """
-                channel_id STRING, 
-                channel_name STRING, 
-                channel_description STRING, 
-                view_count INT, 
-                subscriber_count INT, 
-                video_count INT, 
-                loading_TS TIMESTAMP""",
-            "youtube.playlist_items": """
-                channel_id STRING, 
-                video_id STRING, 
-                video_title STRING, 
-                video_description STRING,
-                thumbnail_url STRING,
-                video_publish_TS TIMESTAMP,
-                loading_TS TIMESTAMP""",
-            "youtube.videos": """
-                video_id STRING, 
-                video_view_count INT, 
-                video_like_count INT, 
-                video_comment_count INT,
-                loading_TS TIMESTAMP""",
+            "youtube/channel":[
+                ('channel_id', pl.Utf8), 
+                ('channel_name', pl.Utf8), 
+                ('channel_description', pl.Utf8), 
+                ('view_count', pl.Int16), 
+                ('subscriber_count', pl.Int16), 
+                ('video_count', pl.Int16), 
+                ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
+            "youtube/playlist_items": [
+                ('channel_id' ,pl.Utf8), 
+                ('video_id' ,pl.Utf8), 
+                ('video_title' ,pl.Utf8), 
+                ('video_description' ,pl.Utf8),
+                ('thumbnail_url' , pl.Utf8),
+                ('video_publish_TS' , pl.Datetime("us", time_zone="UTC")),
+                ('loading_TS' , pl.Datetime("us", time_zone="UTC"))],
+            "youtube/videos": [
+                ('video_id' ,pl.Utf8), 
+                ('video_view_count' ,pl.Int16), 
+                ('video_like_count' , pl.Int16), 
+                ('video_comment_count' ,pl.Int16),
+                ('loading_TS' ,pl.Datetime("us", time_zone="UTC"))],
         }
     },
     "silver": {
-        "name_variable": "SILVER_LH_NAME",
+        "LH_ID_variable": "SILVER_LH_ID",
+        "LH_name_variable": "SILVER_LH_NAME",
         "schemas": ["youtube"],
         "tables": {
-            "youtube.channel_stats": """
-                channel_id STRING, 
-                channel_name STRING, 
-                channel_description STRING, 
-                view_count INT, 
-                subscriber_count INT, 
-                video_count INT, 
-                loading_TS TIMESTAMP""",
-            "youtube.videos": """
-                channel_id STRING, 
-                video_id STRING, 
-                video_title STRING, 
-                video_description STRING,
-                thumbnail_url STRING,
-                video_publish_TS TIMESTAMP,
-                loading_TS TIMESTAMP""",
-            "youtube.video_statistics": """
-                video_id STRING, 
-                video_view_count INT, 
-                video_like_count INT, 
-                video_comment_count INT,
-                loading_TS TIMESTAMP""",
+            "youtube/channel_stats":[
+                ('channel_id', pl.Utf8), 
+                ('channel_name', pl.Utf8), 
+                ('channel_description', pl.Utf8), 
+                ('view_count', pl.Int16), 
+                ('subscriber_count', pl.Int16), 
+                ('video_count', pl.Int16), 
+                ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
+            "youtube/videos": [
+                ('channel_id', pl.Utf8), 
+                ('video_id', pl.Utf8), 
+                ('video_title', pl.Utf8), 
+                ('video_description', pl.Utf8),
+                ('thumbnail_url', pl.Utf8),
+                ('video_publish_TS', pl.Datetime("us", time_zone="UTC")),
+                ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
+            "youtube/video_statistics": [
+                ('video_id', pl.Utf8), 
+                ('video_view_count', pl.Int16), 
+                ('video_like_count', pl.Int16), 
+                ('video_comment_count', pl.Int16),
+                ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
         }
     },
     "gold": {
-        "name_variable": "GOLD_LH_NAME",
+        "LH_ID_variable": "GOLD_LH_ID",
+        "LH_name_variable": "GOLD_LH_NAME",
         "schemas": ["marketing"],
         "tables": {
-            "marketing.channels": """
-                channel_surrogate_id INT, 
-                channel_platform STRING,
-                channel_account_name STRING,
-                channel_account_description STRING,
-                channel_total_subscribers INT,
-                channel_total_assets INT,
-                channel_total_views INT,
-                modified_TS TIMESTAMP""",
-            "marketing.assets": """
-                asset_surrogate_id INT,
-                asset_natural_id STRING,
-                channel_surrogate_id INT,
-                asset_title STRING,
-                asset_text STRING, 
-                asset_publish_date TIMESTAMP,
-                modified_TS TIMESTAMP""",
-            "marketing.asset_stats": """
-                asset_surrogate_id INT, 
-                asset_total_impressions INT,
-                asset_total_views INT, 
-                asset_total_likes INT,
-                asset_total_comments INT,
-                modified_TS TIMESTAMP""",
+            "marketing/channels": [
+                ('channel_surrogate_id', pl.Int16), 
+                ('channel_platform', pl.Utf8),
+                ('channel_account_name', pl.Utf8),
+                ('channel_account_description', pl.Utf8),
+                ('channel_total_subscribers', pl.Int16),
+                ('channel_total_assets', pl.Int16),
+                ('channel_total_views', pl.Int16),
+                ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
+            "marketing/assets": [
+                ('asset_surrogate_id ',pl.Int16),
+                ('asset_natural_id ',pl.Utf8),
+                ('channel_surrogate_id', pl.Int16),
+                ('asset_title ',pl.Utf8),
+                ('asset_text ',pl.Utf8), 
+                ('asset_publish_date', pl.Datetime("us", time_zone="UTC")),
+                ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
+            "marketing/asset_stats": [
+                ('asset_surrogate_id ',pl.Int16), 
+                ('asset_total_impressions', pl.Int16),
+                ('asset_total_views ',pl.Int16), 
+                ('asset_total_likes ',pl.Int16),
+                ('asset_total_comments', pl.Int16),
+                ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
         }
     }
 }
@@ -140,7 +146,7 @@ LAKEHOUSE_METADATA = {
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -159,22 +165,28 @@ def create_lakehouse_objects(lakehouse_config):
         lakehouse_config: Dictionary containing lakehouse metadata
     """
     # Get lakehouse name from variables
-    lh_name = getattr(variables, lakehouse_config["name_variable"])
+    lh_ID = getattr(variables, lakehouse_config["LH_ID_variable"])
+    lh_name = getattr(variables, lakehouse_config["LH_name_variable"])
     
-    # Create schemas
-    for schema_name in lakehouse_config["schemas"]:
-        spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{lh_workspace_name}`.`{lh_name}`.`{schema_name}`")
     
     # Create tables
-    for table, ddl in lakehouse_config["tables"].items():
-        create_script = f"CREATE TABLE IF NOT EXISTS `{lh_workspace_name}`.`{lh_name}`.{table} ({ddl});"
-        spark.sql(create_script)
+    for lh_schema_n_table, table_schema in lakehouse_config["tables"].items():
+        lh_schema = lh_schema_n_table.split('/')[0]
+        table_name = lh_schema_n_table.split('/')[1]
+        lh_schema_path = f'abfss://{ws_ID}@onelake.dfs.fabric.microsoft.com/{lh_ID}/Tables/{lh_schema}'
+        if table_name in [item.name for item in notebookutils.fs.ls(lh_schema_path)]:
+            print(f'Table: {table_name} already exist in schema : {lh_schema} in lakehouse: {lh_name}, skipping ...')
+            continue
+        else:
+            tempdf = pl.DataFrame(schema=table_schema)
+            tempdf.write_delta(f'lh_schema_path/{table_name}')
+            print(f'Table: {table_name} successfully created in schema:{lh_schema} in lakehouse:{lh_name} ✅')
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
 
 # MARKDOWN ********************
@@ -184,12 +196,13 @@ def create_lakehouse_objects(lakehouse_config):
 # CELL ********************
 
 # Process all lakehouses
-for lakehouse_name, lakehouse_config in LAKEHOUSE_METADATA.items():
+for layer, lakehouse_config in LAKEHOUSE_METADATA.items():
     create_lakehouse_objects(lakehouse_config)
+    print(f'\n lakehouse created for {layer} medallion layer !! \n')
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "jupyter_python"
 # META }
