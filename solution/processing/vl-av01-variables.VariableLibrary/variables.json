@@ -30,6 +30,30 @@
       "note": "",
       "type": "String",
       "value": "lh_av01_gold"
+    },
+    {
+      "name": "BRONZE_LH_ID",
+      "note": "",
+      "type": "String",
+      "value": "16de5a42-12fa-4893-97e0-fb387341f364"
+    },
+    {
+      "name": "SILVER_LH_ID",
+      "note": "",
+      "type": "String",
+      "value": "06a287a5-c5af-47ec-b174-3e7b41c1b570"
+    },
+    {
+      "name": "GOLD_LH_ID",
+      "note": "",
+      "type": "String",
+      "value": "7f37dbc2-f2f0-404a-a85f-6f5c7a41a694"
+    },
+    {
+      "name": "LH_WORKSPACE_ID",
+      "note": "",
+      "type": "String",
+      "value": "f23c77ad-5546-45c0-a59b-817d3dd7f34d"
     }
   ]
 }
