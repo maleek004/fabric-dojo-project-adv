@@ -5,6 +5,22 @@
     {
       "name": "LH_WORKSPACE_NAME",
       "value": "av01-dev-datastores"
+    },
+    {
+      "name": "LH_WORKSPACE_ID",
+      "value": "3c4ace58-4286-4060-970b-c8defdeb9299"
+    },
+    {
+      "name": "BRONZE_LH_ID",
+      "value": "168ffbc0-d0db-4acc-9227-14d887a546a1"
+    },
+    {
+      "name": "SILVER_LH_ID",
+      "value": "6cdedf42-7268-4de9-b1f8-8ddbdfce6db7"
+    },
+    {
+      "name": "GOLD_LH_ID",
+      "value": "c14bdf6b-6ea2-4b02-aaae-d2096bec703e"
     }
   ]
 }
