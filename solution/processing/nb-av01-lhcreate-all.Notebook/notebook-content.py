@@ -26,7 +26,6 @@
 
 # CELL ********************
 
-import notebookutils 
 import polars as pl 
 
 variables = notebookutils.variableLibrary.getLibrary("vl-av01-variables")
@@ -60,8 +59,8 @@ LAKEHOUSE_METADATA = {
                 ('channel_id', pl.Utf8), 
                 ('channel_name', pl.Utf8), 
                 ('channel_description', pl.Utf8), 
-                ('view_count', pl.Int16), 
-                ('subscriber_count', pl.Int16), 
+                ('view_count', pl.Int64), 
+                ('subscriber_count', pl.Int64), 
                 ('video_count', pl.Int16), 
                 ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
             "youtube/playlist_items": [
@@ -74,9 +73,9 @@ LAKEHOUSE_METADATA = {
                 ('loading_TS' , pl.Datetime("us", time_zone="UTC"))],
             "youtube/videos": [
                 ('video_id' ,pl.Utf8), 
-                ('video_view_count' ,pl.Int16), 
-                ('video_like_count' , pl.Int16), 
-                ('video_comment_count' ,pl.Int16),
+                ('video_view_count' ,pl.Int64), 
+                ('video_like_count' , pl.Int64), 
+                ('video_comment_count' ,pl.Int32),
                 ('loading_TS' ,pl.Datetime("us", time_zone="UTC"))],
         }
     },
@@ -89,8 +88,8 @@ LAKEHOUSE_METADATA = {
                 ('channel_id', pl.Utf8), 
                 ('channel_name', pl.Utf8), 
                 ('channel_description', pl.Utf8), 
-                ('view_count', pl.Int16), 
-                ('subscriber_count', pl.Int16), 
+                ('view_count', pl.Int64), 
+                ('subscriber_count', pl.Int64), 
                 ('video_count', pl.Int16), 
                 ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
             "youtube/videos": [
@@ -103,8 +102,8 @@ LAKEHOUSE_METADATA = {
                 ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
             "youtube/video_statistics": [
                 ('video_id', pl.Utf8), 
-                ('video_view_count', pl.Int16), 
-                ('video_like_count', pl.Int16), 
+                ('video_view_count', pl.Int64), 
+                ('video_like_count', pl.Int64), 
                 ('video_comment_count', pl.Int16),
                 ('loading_TS', pl.Datetime("us", time_zone="UTC"))],
         }
@@ -119,24 +118,24 @@ LAKEHOUSE_METADATA = {
                 ('channel_platform', pl.Utf8),
                 ('channel_account_name', pl.Utf8),
                 ('channel_account_description', pl.Utf8),
-                ('channel_total_subscribers', pl.Int16),
-                ('channel_total_assets', pl.Int16),
-                ('channel_total_views', pl.Int16),
+                ('channel_total_subscribers', pl.Int64),
+                ('channel_total_assets', pl.Int32),
+                ('channel_total_views', pl.Int64),
                 ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
             "marketing/assets": [
-                ('asset_surrogate_id ',pl.Int16),
-                ('asset_natural_id ',pl.Utf8),
+                ('asset_surrogate_id',pl.Int16),
+                ('asset_natural_id',pl.Utf8),
                 ('channel_surrogate_id', pl.Int16),
-                ('asset_title ',pl.Utf8),
-                ('asset_text ',pl.Utf8), 
+                ('asset_title',pl.Utf8),
+                ('asset_text',pl.Utf8), 
                 ('asset_publish_date', pl.Datetime("us", time_zone="UTC")),
                 ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
             "marketing/asset_stats": [
-                ('asset_surrogate_id ',pl.Int16), 
-                ('asset_total_impressions', pl.Int16),
-                ('asset_total_views ',pl.Int16), 
-                ('asset_total_likes ',pl.Int16),
-                ('asset_total_comments', pl.Int16),
+                ('asset_surrogate_id',pl.Int16), 
+                ('asset_total_impressions', pl.Int64),
+                ('asset_total_views',pl.Int64), 
+                ('asset_total_likes',pl.Int64),
+                ('asset_total_comments', pl.Int32),
                 ('modified_TS', pl.Datetime("us", time_zone="UTC"))],
         }
     }
@@ -171,15 +170,14 @@ def create_lakehouse_objects(lakehouse_config):
     
     # Create tables
     for lh_schema_n_table, table_schema in lakehouse_config["tables"].items():
-        lh_schema = lh_schema_n_table.split('/')[0]
-        table_name = lh_schema_n_table.split('/')[1]
+        lh_schema, table_name = lh_schema_n_table.split('/')
         lh_schema_path = f'abfss://{ws_ID}@onelake.dfs.fabric.microsoft.com/{lh_ID}/Tables/{lh_schema}'
         if table_name in [item.name for item in notebookutils.fs.ls(lh_schema_path)]:
             print(f'Table: {table_name} already exist in schema : {lh_schema} in lakehouse: {lh_name}, skipping ...')
             continue
         else:
             tempdf = pl.DataFrame(schema=table_schema)
-            tempdf.write_delta(f'lh_schema_path/{table_name}')
+            tempdf.write_delta(f'{lh_schema_path}/{table_name}')
             print(f'Table: {table_name} successfully created in schema:{lh_schema} in lakehouse:{lh_name} ✅')
 
 # METADATA ********************
